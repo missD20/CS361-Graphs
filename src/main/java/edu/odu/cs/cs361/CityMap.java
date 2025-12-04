@@ -1,11 +1,6 @@
 package edu.odu.cs.cs361;
 
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.PriorityQueue;
-import java.util.Set;
+import java.util.*;
 
 import com.google.common.graph.MutableValueGraph;
 import com.google.common.graph.ValueGraphBuilder;
@@ -43,6 +38,26 @@ public class CityMap {
      */
     public void addRoad(Integer intersection1, Integer intersection2, int time, int cameras) {
         //*** Your code here
+        RoadInfo info = new RoadInfo(time, cameras);
+        roadMap.putEdgeValue(intersection1, intersection2, info);
+    }
+
+    private static class State implements Comparable<State> {
+        int u;
+        int cameras;
+        int time;
+
+        public State(int u, int cameras, int time) {
+            this.u = u;
+            this.cameras = cameras;
+            this.time = time;
+        }
+
+        
+        @Override
+        public int compareTo(State other) {
+            return Integer.compare(this.time, other.time);
+        }
     }
 
 
@@ -61,7 +76,68 @@ public class CityMap {
      */
     int findFastestRoute(Integer from, Integer to, int cameraLimit) {
         //*** Your code here
-        return 0;
+
+        int maxNodeIndex = 5001;
+        int maxCamerasIndex = 201;
+
+
+        int[][] minTime = new int[maxNodeIndex][maxCamerasIndex];
+
+
+        for (int[] row : minTime) {
+            Arrays.fill(row, Integer.MAX_VALUE);
+        }
+
+
+        PriorityQueue<State> pq = new PriorityQueue<>();
+
+
+        minTime[from][0] = 0;
+        pq.add(new State(from, 0, 0));
+
+        while (!pq.isEmpty()) {
+            State current = pq.poll();
+
+            int u = current.u;
+            int cams = current.cameras;
+            int time = current.time;
+
+
+            if (time > minTime[u][cams]) {
+                continue;
+            }
+
+
+            Set<Integer> neighbors = roadMap.adjacentNodes(u);
+            for (Integer v : neighbors) {
+                RoadInfo edge = roadMap.edgeValueOrDefault(u, v, null);
+
+                if (edge != null) {
+                    int newTime = time + edge.time;
+                    int newCams = cams + edge.cameras;
+
+
+                    if (newCams <= cameraLimit) {
+
+                        if (newTime < minTime[v][newCams]) {
+                            minTime[v][newCams] = newTime;
+                            pq.add(new State(v, newCams, newTime));
+                        }
+                    }
+                }
+            }
+        }
+
+        
+        int resultTime = Integer.MAX_VALUE;
+        for (int c = 0; c <= cameraLimit; c++) {
+            if (minTime[to][c] < resultTime) {
+                resultTime = minTime[to][c];
+            }
+        }
+
+        return (resultTime == Integer.MAX_VALUE) ? -1 : resultTime;
+
     }
 
 }
