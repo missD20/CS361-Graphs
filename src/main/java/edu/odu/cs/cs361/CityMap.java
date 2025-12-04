@@ -54,7 +54,6 @@ public class CityMap {
         }
 
         
-        @Override
         public int compareTo(State other) {
             return Integer.compare(this.time, other.time);
         }
@@ -128,7 +127,7 @@ public class CityMap {
             }
         }
 
-        
+       
         int resultTime = Integer.MAX_VALUE;
         for (int c = 0; c <= cameraLimit; c++) {
             if (minTime[to][c] < resultTime) {
